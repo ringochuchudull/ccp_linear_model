@@ -5,9 +5,11 @@ import os
 import glob
 from PIL import Image
 
+import torch
+import torch.nn.functional as F
+
 from torchvision import transforms
 from torch.utils.data import Dataset, DataLoader
-import torch.nn.functional as F
 
 class VesselImageDataset(Dataset):
 
@@ -23,7 +25,6 @@ class VesselImageDataset(Dataset):
 
             self.imgpath += temp
             self.labels += [idx] *  len(temp)
-            print(self.imgpath)
 
         assert len(self.imgpath) == len(self.labels)
         self.num_classes = len(self.folders)
@@ -35,20 +36,28 @@ class VesselImageDataset(Dataset):
                                     transforms.ToTensor(),  # Convert images to PyTorch tensors
                                     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
 
+        self.targets_transform = None
+        if self.targets_transform is None:
+            self.targets_transform = transforms.Compose([
+                                        transforms.ToTensor()])
+
     def __getitem__(self, idx):
         img = Image.open(self.imgpath[idx])
+        if img.mode != 'RGB':
+            img = img.convert('RGB')
+
         img = self.transform(img)
-
-        label = self.labels[idx]
-        label = F.one_hot(label, num_classes=self.num_classes)
-
+        label = torch.tensor(self.labels[idx], dtype=torch.long)
+        
         return img, label
 
+    def __len__(self):
+        return len(self.imgpath)
 
 if __name__ == '__main__':
 
     # Test the dataloader
     image_classes = ["OOCL_VESSEL_SHIPS", "CARGO_TRUCKS"]
     dataset = VesselImageDataset(image_classes)
-
+    img1, label1 = dataset[0]
 
