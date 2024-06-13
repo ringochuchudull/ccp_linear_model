@@ -1,4 +1,5 @@
 # __name__ = 'Ringp'
+import os
 
 import torch
 import torch.nn as nn
@@ -16,7 +17,7 @@ learning_rate = 0.01
 batch_size = 1
 num_epochs = 10
 
-image_classes = ["OOCL_VESSEL_SHIPS", "CARGO_TRUCKS"]
+image_classes = ["OOCL_VESSEL_SHIPS", "MAERSK_VESSEL_SHIPS"]
 num_calsses = len(image_classes)
 
 dataset = VesselImageDataset(image_classes)
@@ -27,13 +28,12 @@ model = SimpleLinearModel(num_calsses)
 criterion = nn.CrossEntropyLoss() 
 optimizer = optim.SGD(model.parameters(), lr=learning_rate)
 
-
-
 for epoch in range(num_epochs):
 
     true_labels = []
     pred_labels = []
 
+    max_accuracy = 0 
     for i, (inputs, labels) in enumerate(train_loader):
 
         outputs = model(inputs)
@@ -53,3 +53,15 @@ for epoch in range(num_epochs):
     epoch_precision = precision_score(true_labels, pred_labels)
 
     print(f"Accuracy: {epoch_accuracy:.4f}, Precision: {epoch_precision:.4f}")
+
+    if epoch_accuracy > max_accuracy:
+        max_accuracy = epoch_accuracy
+        checkpoint = {
+            'epoch': epoch + 1,
+            'state_dict': model.state_dict(),
+            'optimizer': optimizer.state_dict(),
+            'accuracy': epoch_accuracy,  # Assuming you have calculated this
+            'precision': epoch_precision,  # Assuming you have calculated this
+        }
+        checkpoint_filename = os.path.join('checkpoints', f'weight.pth')
+        torch.save(checkpoint, checkpoint_filename)

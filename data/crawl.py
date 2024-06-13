@@ -4,7 +4,7 @@
 import os
 from icrawler.builtin import GoogleImageCrawler
 
-CLASSES = ["OOCL_VESSEL_SHIPS", "CARGO_TRUCKS"]
+CLASSES = ["OOCL_VESSEL_SHIPS", "MAERSK_VESSEL_SHIPS"]
 NUM_SAMPLES = 50
 
 
